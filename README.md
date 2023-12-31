@@ -1,29 +1,14 @@
-# node-red
-Node Red Flows for use with Sonnenbatterie
+# SonnenBatterie Control Flows with Node-RED
 
-``` 
-podman run -it -p 1880:1880 -v node_red_data:/data --name mynodered nodered/node-red
-``` 
+This repository contains Node-RED control flows I use for controlled charging, in my case with the help of Tibber dynamic pricing.
 
-```
-podman volume inspect node_red_data 
-[
-     {
-          "Name": "node_red_data",
-          "Driver": "local",
-          "Mountpoint": "/home/mnagel/.local/share/containers/storage/volumes/node_red_data/_data",
-          "CreatedAt": "2023-11-21T12:39:13.839702554+01:00",
-          "Labels": {},
-          "Scope": "local",
-          "Options": {},
-          "UID": 1000,
-          "GID": 1000,
-          "MountCount": 0,
-          "LockNumber": 15
-     }
-]
+Please refer to the [Overview](./docs/overview.md) page.
 
-```
+As I expand the documentation (and content) I will also link specific pages from here.
+
+Cheers!
 
 
-![Basic Flows](./images/flows.png)
+
+
+
