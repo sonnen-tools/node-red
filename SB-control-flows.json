@@ -1,0 +1,1430 @@
+[
+    {
+        "id": "8d2c5600e93d98d9",
+        "type": "tab",
+        "label": "SonnenBatterie Control",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c303c08096ca06f0",
+        "type": "subflow",
+        "name": "SB Get Status",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 60,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "e4ede092a5904284"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 760,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "96757557d82491fb",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "meta": {},
+        "color": "#3FADB5",
+        "icon": "node-red/status.svg"
+    },
+    {
+        "id": "eae36ce651e39938",
+        "type": "subflow",
+        "name": "SB Set Normal Mode",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 80,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "d8db4521b6c0ebf9"
+                    }
+                ]
+            }
+        ],
+        "out": [],
+        "env": [],
+        "meta": {},
+        "color": "#3FADB5",
+        "icon": "node-red/status.svg"
+    },
+    {
+        "id": "b54b23cb614d0af1",
+        "type": "subflow",
+        "name": "SB Charge Battery",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 60,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "b663fa6541cd5d64"
+                    }
+                ]
+            }
+        ],
+        "out": [],
+        "env": [],
+        "meta": {},
+        "color": "#3FADB5",
+        "icon": "node-red/status.svg"
+    },
+    {
+        "id": "ef1fb0c70913c681",
+        "type": "tibber-api-endpoint",
+        "queryUrl": "https://api.tibber.com/v1-beta/gql",
+        "feedConnectionTimeout": "30",
+        "feedTimeout": "60",
+        "queryRequestTimeout": "30",
+        "name": "Markus"
+    },
+    {
+        "id": "e4ede092a5904284",
+        "type": "function",
+        "z": "c303c08096ca06f0",
+        "name": "Build Status Request",
+        "func": "\nvar sonnen_ip = global.get(\"sonnen_api_ip\");\nvar sonnen_token = global.get(\"sonnen_api_token\");\n\nvar endpoint = \"/api/v2/status\"\n\nmsg.url = \"http://\" + sonnen_ip + endpoint;\nmsg.method = \"GET\"\nmsg.headers = {};\nmsg.headers['Auth-Token'] = sonnen_token;\n\n\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 240,
+        "y": 80,
+        "wires": [
+            [
+                "96757557d82491fb"
+            ]
+        ]
+    },
+    {
+        "id": "96757557d82491fb",
+        "type": "http request",
+        "z": "c303c08096ca06f0",
+        "name": "Generic HTTP Request",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 570,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4b9735266375be0d",
+        "type": "http request",
+        "z": "eae36ce651e39938",
+        "name": "Generic HTTP Request",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 570,
+        "y": 80,
+        "wires": [
+            [
+                "e3b32df016901eef"
+            ]
+        ]
+    },
+    {
+        "id": "d8db4521b6c0ebf9",
+        "type": "function",
+        "z": "eae36ce651e39938",
+        "name": "Prepare Reset to normal Mode",
+        "func": "var sonnen_ip = global.get(\"sonnen_api_ip\");\nvar sonnen_token = global.get(\"sonnen_api_token\");\n\nvar endpoint = \"/api/v2/configurations\"\n\nmsg.url = \"http://\" + sonnen_ip + endpoint;\nmsg.method = \"PUT\"\nmsg.headers = {};\nmsg.headers['Auth-Token'] = sonnen_token;\nmsg.payload = {\"EM_OperatingMode\":\"2\"}\n\n\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 270,
+        "y": 80,
+        "wires": [
+            [
+                "4b9735266375be0d"
+            ]
+        ]
+    },
+    {
+        "id": "e3b32df016901eef",
+        "type": "debug",
+        "z": "eae36ce651e39938",
+        "name": "debug 21",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "4cb01b9109bbbf49",
+        "type": "function",
+        "z": "b54b23cb614d0af1",
+        "name": "Prepare Charging (OM=1)",
+        "func": "var sonnen_ip = global.get(\"sonnen_api_ip\");\nvar sonnen_token = global.get(\"sonnen_api_token\");\n\nvar endpoint = \"/api/v2/configurations\"\n\nglobal.set(\"startChargeWh\", msg.payload.RemainingCapacity_Wh);\n\n\n\nmsg.url = \"http://\" + sonnen_ip + endpoint;\nmsg.method = \"PUT\"\nmsg.headers = {};\nmsg.headers['Auth-Token'] = sonnen_token;\nmsg.payload = {\"EM_OperatingMode\":\"1\"}\n\n\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 80,
+        "wires": [
+            [
+                "edf31e9f60b417ae"
+            ]
+        ]
+    },
+    {
+        "id": "edf31e9f60b417ae",
+        "type": "http request",
+        "z": "b54b23cb614d0af1",
+        "name": "Generic HTTP Request",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 890,
+        "y": 80,
+        "wires": [
+            [
+                "a1bf0740af11e891"
+            ]
+        ]
+    },
+    {
+        "id": "a1bf0740af11e891",
+        "type": "function",
+        "z": "b54b23cb614d0af1",
+        "name": "Prepare Start Charging",
+        "func": "var sonnen_ip = global.get(\"sonnen_api_ip\");\nvar sonnen_token = global.get(\"sonnen_api_token\");\nvar sonnen_watts = global.get(\"sonnen_charge_watts\");\n\nvar endpoint = \"/api/v2/setpoint/charge/\" + sonnen_watts;\n\nmsg.url = \"http://\" + sonnen_ip + endpoint;\nmsg.method = \"POST\"\nmsg.headers = {};\nmsg.headers['Auth-Token'] = sonnen_token;\nmsg.payload = {};\n\n\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1170,
+        "y": 80,
+        "wires": [
+            [
+                "7594195ea36296d1"
+            ]
+        ]
+    },
+    {
+        "id": "7594195ea36296d1",
+        "type": "http request",
+        "z": "b54b23cb614d0af1",
+        "name": "Generic HTTP Request",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1450,
+        "y": 80,
+        "wires": [
+            [
+                "842db788ce0f471f"
+            ]
+        ]
+    },
+    {
+        "id": "842db788ce0f471f",
+        "type": "switch",
+        "z": "b54b23cb614d0af1",
+        "name": "Charging ok?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "false"
+            },
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1690,
+        "y": 80,
+        "wires": [
+            [
+                "79512febc2a00a5c"
+            ],
+            [
+                "55e5b79c18a638a8"
+            ]
+        ]
+    },
+    {
+        "id": "79512febc2a00a5c",
+        "type": "tibber-notify",
+        "z": "b54b23cb614d0af1",
+        "name": "Warning",
+        "active": true,
+        "apiEndpointRef": "ef1fb0c70913c681",
+        "notifyTitle": "\"WARNING\"",
+        "notifyMessage": "\"Battery won't charge\"",
+        "notifyScreen": "",
+        "x": 1880,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "885810cbd4a4ef4d",
+        "type": "subflow:c303c08096ca06f0",
+        "z": "b54b23cb614d0af1",
+        "name": "",
+        "x": 520,
+        "y": 240,
+        "wires": [
+            [
+                "af75327c55fb8db3"
+            ]
+        ]
+    },
+    {
+        "id": "55e5b79c18a638a8",
+        "type": "delay",
+        "z": "b54b23cb614d0af1",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "minutes",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 300,
+        "y": 240,
+        "wires": [
+            [
+                "885810cbd4a4ef4d",
+                "f3712eacfa86c98e"
+            ]
+        ]
+    },
+    {
+        "id": "b663fa6541cd5d64",
+        "type": "switch",
+        "z": "b54b23cb614d0af1",
+        "name": "alreadyCharging?",
+        "property": "payload.BatteryCharging",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "false"
+            },
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 290,
+        "y": 80,
+        "wires": [
+            [
+                "4cb01b9109bbbf49"
+            ],
+            [
+                "38b347bddf5e6590"
+            ]
+        ]
+    },
+    {
+        "id": "38b347bddf5e6590",
+        "type": "function",
+        "z": "b54b23cb614d0af1",
+        "name": "nothingToDo",
+        "func": "node.warn(\"Nothing To Do, already charging\");\nnode.warn(\"Current SoC: \" + msg.payload.USOC);\nnode.warn(\"Desired SoC: \" + global.get(\"sonnen_target_soc\"));\nnode.warn(\"Current Cost: \" + global.get(\"currentCheapHour\").total);\n\n",
+        "outputs": 0,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "af75327c55fb8db3",
+        "type": "switch",
+        "z": "b54b23cb614d0af1",
+        "name": "stillCharging?",
+        "property": "payload.BatteryCharging",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "false"
+            },
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 780,
+        "y": 240,
+        "wires": [
+            [
+                "7e16183d47f8f981"
+            ],
+            [
+                "4acf88cf4ee59011"
+            ]
+        ]
+    },
+    {
+        "id": "7e16183d47f8f981",
+        "type": "function",
+        "z": "b54b23cb614d0af1",
+        "name": "nothingToDo",
+        "func": "node.warn(\"Charging has been stopped\");\nnode.warn(\"Current SoC: \" + msg.payload.USOC);\nnode.warn(\"Desired SoC: \" + global.get(\"sonnen_target_soc\"));\n\n\n",
+        "outputs": 0,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1030,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "4acf88cf4ee59011",
+        "type": "switch",
+        "z": "b54b23cb614d0af1",
+        "name": "SoC < Desired SoC?",
+        "property": "payload.USOC",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gte",
+                "v": "sonnen_target_soc",
+                "vt": "global"
+            },
+            {
+                "t": "lt",
+                "v": "sonnen_target_soc",
+                "vt": "global"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1060,
+        "y": 400,
+        "wires": [
+            [
+                "58aed5301e38d673"
+            ],
+            [
+                "55e5b79c18a638a8"
+            ]
+        ]
+    },
+    {
+        "id": "f7d364f1fe8dda90",
+        "type": "subflow:eae36ce651e39938",
+        "z": "b54b23cb614d0af1",
+        "name": "SB Stop Charging",
+        "x": 1590,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "58aed5301e38d673",
+        "type": "function",
+        "z": "b54b23cb614d0af1",
+        "name": "calcChargedWh",
+        "func": "const startedWithWh = global.get(\"startChargeWh\");\nconst stoppingWithWh = msg.payload.RemainingCapacity_Wh;\n\nconst chargedWh = stoppingWithWh - startedWithWh;\n\nvar chargeLogArray = global.get(\"chargeLog\");\nif (chargeLogArray == null) {\n    chargeLogArray = [];\n}\n\nvar lastCharge = {};\n\nlastCharge.timeStamp = new Date();\nlastCharge.cost = global.get(\"currentCheapHour\").total;\nlastCharge.wattHours = chargedWh;\n\nchargeLogArray.push(lastCharge);\n\nnode.warn(\"desired Soc reached, stopping\");\n\n\n\nglobal.set(\"chargeLog\", chargeLogArray);\n\n\n\n\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1320,
+        "y": 240,
+        "wires": [
+            [
+                "f7d364f1fe8dda90"
+            ]
+        ]
+    },
+    {
+        "id": "f3712eacfa86c98e",
+        "type": "debug",
+        "z": "b54b23cb614d0af1",
+        "name": "in delay loop",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 400,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "e130134e35ca8b0b",
+        "type": "inject",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "{   viewer {     homes {       currentSubscription {         priceInfo {           today {             total             startsAt           }           tomorrow {             total             startsAt           }         }       }     }   } }",
+        "payloadType": "str",
+        "x": 320,
+        "y": 240,
+        "wires": [
+            [
+                "88db18caa0d4c682"
+            ]
+        ]
+    },
+    {
+        "id": "88db18caa0d4c682",
+        "type": "tibber-query",
+        "z": "8d2c5600e93d98d9",
+        "name": "GetPrices",
+        "active": true,
+        "apiEndpointRef": "ef1fb0c70913c681",
+        "x": 590,
+        "y": 240,
+        "wires": [
+            [
+                "37ec5b24f80af82c",
+                "cf3171b3c197749d"
+            ]
+        ]
+    },
+    {
+        "id": "f526272c52741998",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 8",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1390,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "37ec5b24f80af82c",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "getCheapestHours",
+        "func": "const prices = msg.payload.viewer.homes[0].currentSubscription.priceInfo;\nconst today = prices.today;\nconst tomorrow = prices.tomorrow;\nconst userMaxPrice = flow.get(\"maxPrice\");\nconst lossFactor = flow.get(\"conversion_loss_factor\"); //e.g. 1.2 for 20% loss\nconst maxPriceFactor = 1 - (lossFactor - 1); \n//the above doesn't work above lossFactor > 2, but that would also mean 100% loss in conversion...\n//in that case, I'm happy you have a warm home because 100% of your power is converted into heat ;-)\n\n//tomorrow = [];\n\n/* First, let's get all available prices (today and if possible tomorrow).\n   \n   then, calc the average for the available series\n\n   then, reduce the list to all that are <factor> below the average AND below the maxPrice\n\n   then, sort by price and just take the first 5 (if available)... assuming that a full charge (SonnenBatterie10) will \n   take less than 2.5hrs\n\n   There surely are be better algorithms to calculate what a good charging price is, \n   suggestions are very welcome! \n   Create an issue or a discussion here: \n   https://github.com/orgs/sonnen-tools/discussions\n   https://github.com/sonnen-tools/node-red/issues \n\n   The \"shouldIBeCharging\" node takes the resulting list and just checks if the current timestamp is within\n   one of the \"cheapHours\"\n\n\n\n*/\n\nconst allPrices = today.concat(tomorrow);\nconst totalSum = allPrices.reduce((acc, obj) => acc + obj.total, 0);\nconst averagePrice = totalSum / allPrices.length; \n\nconst calculatedMaxPrice = averagePrice * maxPriceFactor;\n\nconst maxPrice = Math.min(calculatedMaxPrice, userMaxPrice); //use whichever is lower\n\n\nnode.warn(\"averagePrice: \" + averagePrice);\nnode.warn(\"minimumPrice (factored):\" + calculatedMaxPrice);\nnode.warn(\"userMaxPrice set to \" + userMaxPrice);\nnode.warn(\"maxPrice set to \" + maxPrice);\n\n\n//keep only those below or equal to maxPrice\nvar cheapHours = allPrices.filter(obj => obj.total <= maxPrice);\n\n// Sorting the array by the \"total\" property\ncheapHours.sort((a, b) => a.total - b.total);\n\n\n//store in flow context\n//memory is fine, since it will update on the next run\n\nflow.set(\"cheapHours\", cheapHours);\n\n\nmsg.payload = cheapHours;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 360,
+        "wires": [
+            [
+                "b822ca226598d0ca"
+            ]
+        ]
+    },
+    {
+        "id": "b822ca226598d0ca",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 9",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1390,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "12460cf02b35326f",
+        "type": "config",
+        "z": "8d2c5600e93d98d9",
+        "name": "Cheapest Hours Config",
+        "properties": [
+            {
+                "p": "maxPrice",
+                "pt": "flow",
+                "to": "0.20",
+                "tot": "num"
+            },
+            {
+                "p": "conversion_loss_factor",
+                "pt": "flow",
+                "to": "1.2",
+                "tot": "str"
+            }
+        ],
+        "active": true,
+        "x": 390,
+        "y": 60,
+        "wires": [],
+        "info": "**flow.maxPrice**\n\nThe maximum price that would still be considered \"cheap\"\n\n**NOTE:** \nWe need to consider a conversion loss of roughly 20%,\nso setting to 0.25EUR/kWh effectively means using it at 0.25*1.2=0.30ct/kWh\n\nStill cheap compared to my previous contract (0.382)\n\n**flow.conversion_loss_factor**\n\n1.2 equals 20% conversion loss \n(Grid -> Inverter -> Battery -> Inverter -> Home Use)\nYour mileage may vary, but you can change it here.\nThis is used when determining if the battery should\nbe allowed to discharge\n(Doesn't make sense to discharge if the current grid cost is lower than\nwhat you charged for * <i>conversion_loss_factor</i>)"
+    },
+    {
+        "id": "62f1ced1d7e6033b",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "getCheapestHours",
+        "func": "msg.payload = flow.get(\"cheapHours\");\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 460,
+        "wires": [
+            [
+                "f1f16a747ab5666a"
+            ]
+        ]
+    },
+    {
+        "id": "f1f16a747ab5666a",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 10",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1390,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "7f5fcee99c6dd607",
+        "type": "inject",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 490,
+        "y": 460,
+        "wires": [
+            [
+                "62f1ced1d7e6033b"
+            ]
+        ]
+    },
+    {
+        "id": "032dc4ca63696387",
+        "type": "inject",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "120",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "10",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 490,
+        "y": 620,
+        "wires": [
+            [
+                "5134b93e8d142a63"
+            ]
+        ]
+    },
+    {
+        "id": "5134b93e8d142a63",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "shouldIBeCharging?",
+        "func": "const timeStamp = msg.payload;\n\nconst cheapHours = flow.get(\"cheapHours\");\n\n\n// Convert the timestamp to a Date object\nconst timestampDate = new Date(timeStamp);\n\n\n// Function to check if a startsAt date is within the full hour of a given date\nfunction isWithinFullHour(startsAtDate, referenceDate) {\n  return (\n    startsAtDate.getDate() === referenceDate.getDate() &&\n    startsAtDate.getHours() === referenceDate.getHours()\n  );\n}\n\nvar matchingObject = cheapHours.find(item => {\n  const startsAtDate = new Date(item.startsAt);\n  return isWithinFullHour(startsAtDate, timestampDate);\n});\n\nif (typeof matchingObject === 'undefined') {\n  matchingObject = null;\n}\n\n// Output the result\nnode.warn(\"Is within timestamp full hour:\" + (matchingObject !== null));\nnode.warn(matchingObject);\n\nif (matchingObject !== null) {\n  global.set(\"currentCheapHour\", matchingObject);\n}\n\nif (matchingObject !== null) {\n   node.status({ fill: \"green\", shape: \"dot\", text: \"yes - charge\" });\n   return [ msg, null ];\n} else {\n   node.status({ fill: \"red\", shape: \"dot\", text: \"no - don't charge\" });\n   return [ null, msg ];\n}\n\n\n\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 790,
+        "y": 620,
+        "wires": [
+            [
+                "e87ea8a1db4e9804",
+                "4a32a6e6d05dea24"
+            ],
+            [
+                "1a253a0876894c70",
+                "7d45042d33a188fb"
+            ]
+        ]
+    },
+    {
+        "id": "e87ea8a1db4e9804",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 13",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "d149fbdaf11a8469",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "convertToEpoch",
+        "func": "const timeString = msg.payload;\n\n\n// Create a Date object from the time string\nconst dateObject = new Date(timeString);\n\n// Get the numerical epoch value (timestamp)\nconst timestamp = dateObject.getTime();\n\nmsg.payload = timestamp;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 820,
+        "wires": [
+            [
+                "5b9bcca0548f1810",
+                "5134b93e8d142a63"
+            ]
+        ]
+    },
+    {
+        "id": "3c6fd3c2fdafe496",
+        "type": "inject",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "v": "",
+                "vt": "date"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "2023-12-28T23:00:00.000+01:00",
+        "payloadType": "str",
+        "x": 480,
+        "y": 820,
+        "wires": [
+            [
+                "d149fbdaf11a8469"
+            ]
+        ]
+    },
+    {
+        "id": "5b9bcca0548f1810",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 14",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1060,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "6047656486a171a2",
+        "type": "config",
+        "z": "8d2c5600e93d98d9",
+        "name": "SonnenBatterie Config",
+        "properties": [
+            {
+                "p": "sonnen_api_ip",
+                "pt": "global",
+                "to": "192.168.2.108",
+                "tot": "str"
+            },
+            {
+                "p": "sonnen_api_token",
+                "pt": "global",
+                "to": "215ddea7-dff9-421b-8744-ee2504f9ec0e",
+                "tot": "str"
+            },
+            {
+                "p": "sonnen_target_soc",
+                "pt": "global",
+                "to": "80",
+                "tot": "num"
+            },
+            {
+                "p": "sonnen_charge_watts",
+                "pt": "global",
+                "to": "4500",
+                "tot": "num"
+            },
+            {
+                "p": "sonnen_discharge_control",
+                "pt": "flow",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "active": true,
+        "x": 680,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "9bfd0f1b466176c1",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 15",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1610,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "4a32a6e6d05dea24",
+        "type": "subflow:c303c08096ca06f0",
+        "z": "8d2c5600e93d98d9",
+        "name": "SB Get Status",
+        "x": 1350,
+        "y": 580,
+        "wires": [
+            [
+                "9bfd0f1b466176c1",
+                "c5f7a979efb1d7d1"
+            ]
+        ]
+    },
+    {
+        "id": "c5f7a979efb1d7d1",
+        "type": "switch",
+        "z": "8d2c5600e93d98d9",
+        "name": "SoC < Desired SoC?",
+        "property": "payload.USOC",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "lt",
+                "v": "sonnen_target_soc",
+                "vt": "global"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1650,
+        "y": 580,
+        "wires": [
+            [
+                "e54df3c2882acac5",
+                "cd59768b95503089"
+            ]
+        ]
+    },
+    {
+        "id": "7d45042d33a188fb",
+        "type": "subflow:c303c08096ca06f0",
+        "z": "8d2c5600e93d98d9",
+        "name": "SB Get Status",
+        "x": 1350,
+        "y": 740,
+        "wires": [
+            [
+                "9a6cf1e9bd4b4d6b"
+            ]
+        ]
+    },
+    {
+        "id": "1a253a0876894c70",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 16",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "442469874f9398b0",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 17",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2070,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "79eeb59fc8c04ad5",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 18",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2050,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "5d7e58fcc7e3a7f7",
+        "type": "subflow:eae36ce651e39938",
+        "z": "8d2c5600e93d98d9",
+        "name": "SB Stop Charging",
+        "x": 2200,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "e54df3c2882acac5",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 19",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1890,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "cd59768b95503089",
+        "type": "subflow:b54b23cb614d0af1",
+        "z": "8d2c5600e93d98d9",
+        "name": "SB Charge",
+        "x": 1960,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "5763e1f16f68be6d",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "calcChargedWh",
+        "func": "const startedWithWh = global.get(\"startChargeWh\");\nconst stoppingWithWh = msg.payload.RemainingCapacity_Wh;\n\nconst chargedWh = stoppingWithWh - startedWithWh;\n\n\n\n\n\nvar chargeLogArray = global.get(\"chargeLog\");\nif (chargeLogArray == null) {\n    chargeLogArray = [];\n}\n\nvar lastCharge = {};\n\nlastCharge.timeStamp = new Date();\nlastCharge.cost = global.get(\"currentCheapHour\").total\nlastCharge.wattHours = chargedWh;\n\nchargeLogArray.push(lastCharge);\n\nglobal.set(\"chargeLog\", chargeLogArray);\n\n\n\n\n\n\n\n\n\n\n\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1950,
+        "y": 720,
+        "wires": [
+            [
+                "5d7e58fcc7e3a7f7"
+            ]
+        ]
+    },
+    {
+        "id": "34bc8f672e3abdf8",
+        "type": "inject",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 960,
+        "y": 60,
+        "wires": [
+            [
+                "06e26d32f8706c95"
+            ]
+        ]
+    },
+    {
+        "id": "06e26d32f8706c95",
+        "type": "change",
+        "z": "8d2c5600e93d98d9",
+        "name": "Cleanup Global Context",
+        "rules": [
+            {
+                "t": "delete",
+                "p": "chargeLog",
+                "pt": "global"
+            },
+            {
+                "t": "delete",
+                "p": "currentCheapHour",
+                "pt": "global"
+            },
+            {
+                "t": "delete",
+                "p": "lastChargedPrice",
+                "pt": "global"
+            },
+            {
+                "t": "delete",
+                "p": "lastChargedWh",
+                "pt": "global"
+            },
+            {
+                "t": "delete",
+                "p": "startChargeWh",
+                "pt": "global"
+            },
+            {
+                "t": "delete",
+                "p": "tibber_tomorrow",
+                "pt": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1270,
+        "y": 60,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cf3171b3c197749d",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "storeAllPrices",
+        "func": "var prices = msg.payload.viewer.homes[0].currentSubscription.priceInfo;\nvar today = prices.today;\nvar tomorrow = prices.tomorrow;\nvar tomorrow_high = {};\nvar tomorrow_low = {};\nvar tomorrow_avg = 0.0;\n\n\n\nglobal.set(\"tibber_today\", today);\n\nvar ctx_tomorrow = global.get(\"tibber_tomorrow\");\nif (typeof ctx_tomorrow === 'undefined') {\n  ctx_tomorrow = [];\n}\n\nglobal.set(\"tibber_tomorrow\", tomorrow);\n\nif (ctx_tomorrow.length == 0 && tomorrow.length > 0) {\n\n  node.warn(\"new prices are here\");\n  // Find entry with the lowest \"total\" value\n  tomorrow_low = tomorrow.reduce((min, obj) => (obj.total < min.total ? obj : min), tomorrow[0]);\n\n  // Find entry with the highest \"total\" value\n  tomorrow_high = tomorrow.reduce((max, obj) => (obj.total > max.total ? obj : max), tomorrow[0]);\n\n  const totalSum = tomorrow.reduce((sum, obj) => sum + obj.total, 0);\n  tomorrow_avg = totalSum / tomorrow.length; //should always be 24, but...whatever.\n\n\n  node.warn(\"Lowest Price: \" + tomorrow_low.total + \" at \" + tomorrow_low.startsAt);\n  node.warn(\"Highest Price: \" + tomorrow_high.total + \" at \" + tomorrow_high.startsAt);\n  node.warn(\"Average: \" + tomorrow_avg);\n\n  msg.payload.title = \"Updated prices for tomorrow!\";\n  msg.payload.screen = \"HOME\";\n  msg.payload.message = \"Low: \" + tomorrow_low.total + \" High: \" + tomorrow_high.total;\n\n  \n  return [ msg, null ];\n} else {\n  return [ null, msg ];\n}\n\n\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 200,
+        "wires": [
+            [
+                "8c0165d4b3c2cf06"
+            ],
+            [
+                "f526272c52741998"
+            ]
+        ]
+    },
+    {
+        "id": "8c0165d4b3c2cf06",
+        "type": "tibber-notify",
+        "z": "8d2c5600e93d98d9",
+        "name": "New Price Notify",
+        "active": true,
+        "apiEndpointRef": "ef1fb0c70913c681",
+        "notifyTitle": "",
+        "notifyMessage": "",
+        "notifyScreen": "",
+        "x": 1400,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "734b15099d1cca92",
+        "type": "inject",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 480,
+        "y": 960,
+        "wires": [
+            [
+                "72673f8d14c63b39"
+            ]
+        ]
+    },
+    {
+        "id": "72673f8d14c63b39",
+        "type": "subflow:c303c08096ca06f0",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "x": 710,
+        "y": 960,
+        "wires": [
+            [
+                "124e1289d5f1d6e3"
+            ]
+        ]
+    },
+    {
+        "id": "124e1289d5f1d6e3",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "shouldIDischarge?",
+        "func": "\nreturn msg;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 960,
+        "wires": [
+            [
+                "ea4d9f8ca07a74a3"
+            ],
+            [
+                "6d6a03bca81d12ad"
+            ]
+        ]
+    },
+    {
+        "id": "ea4d9f8ca07a74a3",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "Yes, discharge",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1240,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "6d6a03bca81d12ad",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "No, hold your horses",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1260,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "9a6cf1e9bd4b4d6b",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "amICharging?",
+        "func": "/* Just checking the payload.BatteryCharging could be done easier with a \nswitch node.\nHowever, I noticed that during times with highly fluctuating large consumptions \n(e.g. a stove on \"middle\", comsuming 2kW when powering, but switching on and off frequently)\nthe battery sometimes \"charges\" a bit when consumption just switched off before it powers down \nfeeding into the house.\nHowever, if you hit the API just at this moment, \"BatteryCharging\" is true, even though there is no\nPV available (seen that in the evening).\n\nTo make sure - we check for \"BatteryCharging\" but only when it is in manual/API mode (OM=1) */\n\nvar operatingMode = msg.payload.OperatingMode;\nvar isBatteryCharging = msg.payload.BatteryCharging;\n\n\nif (operatingMode == \"1\" && isBatteryCharging) {\n    //send to first output only\n    return [msg, null];\n\n} else {\n    //send to second output only\n    return [null, msg];\n}\n\n\n\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1660,
+        "y": 740,
+        "wires": [
+            [
+                "5763e1f16f68be6d",
+                "442469874f9398b0"
+            ],
+            [
+                "458aea83fb3ba99d"
+            ]
+        ]
+    },
+    {
+        "id": "458aea83fb3ba99d",
+        "type": "switch",
+        "z": "8d2c5600e93d98d9",
+        "name": "DischargeControl on?",
+        "property": "sonnen_discharge_control",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1960,
+        "y": 860,
+        "wires": [
+            [
+                "79eeb59fc8c04ad5",
+                "0d1bbec1c374b622"
+            ]
+        ]
+    },
+    {
+        "id": "0d1bbec1c374b622",
+        "type": "function",
+        "z": "8d2c5600e93d98d9",
+        "name": "calculateDischargeCost",
+        "func": "var charges = global.get(\"chargeLog\");\n\nif (typeof charges === 'undefined'){\n  charges = [];\n}\n\n\ncharges.forEach(obj => {\n  obj.total = obj.cost * obj.wattHours;\n});\n\n\nconst totalSum = charges.reduce((acc, obj) => acc + obj.total, 0);\nconst wattHoursSum = charges.reduce((acc, obj) => acc + obj.wattHours, 0);\n\nconst averageCost = totalSum / wattHoursSum;\nnode.warn(\"avg: \" + averageCost);\n\n\n\nmsg.charges = charges;\n\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2250,
+        "y": 860,
+        "wires": [
+            [
+                "88f3bd809ce828ad"
+            ]
+        ]
+    },
+    {
+        "id": "88f3bd809ce828ad",
+        "type": "debug",
+        "z": "8d2c5600e93d98d9",
+        "name": "debug 20",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2570,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "97e10c8b4ab5945a",
+        "type": "comment",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "info": "Current Price\n\nDischarge only if current price lower than\ncalculated average of charge\n\ndismiss any entries older than 12 hours",
+        "x": 2200,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "c93e42748b81cb9e",
+        "type": "comment",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "info": "Alternative - only consider the cheap hours\nif their price is FACTOR lower than the trailing average from tibber\n\nBut - use all available from today and tomorrow, calculate the available\naverage and use those that have a factor 0.8 below average",
+        "x": 840,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "7a25eb0346e46e44",
+        "type": "inject",
+        "z": "8d2c5600e93d98d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 1730,
+        "y": 660,
+        "wires": [
+            [
+                "5763e1f16f68be6d"
+            ]
+        ]
+    }
+]
