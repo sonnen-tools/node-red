@@ -10,7 +10,11 @@ The `SB-control-flows-*.json` are trying to make use of Tibber dynamic prices an
 
 ## How does it do that?
 
-I'll explain the various flows in more detail in their respective chapters, but for an overview:
+I'll explain the various flows in more detail in their respective chapters, but for an overview see below.
+If you're interested in the background (why?) and the calculations (algorithm) behind it, follow these links:
+
+[Background](background.md)  
+[Calculation / Algorithm](calculation.md)
 
 ### Configuration
 
@@ -61,7 +65,8 @@ This simply queries the status API of the SonnenBatterie. Since using the "Gener
 
 #### SB Set Mode
 This sets the sets the battery to manual mode (OperatingMode = "1") or to the default "automatic" mode (OperatingMode = "2"), where the battery detects if it should charge/discharge.   
-It checks if the requested mode is equal to the current mode. If it is, the flow ends here.   
+It checks if the requested mode is equal to the current mode. If it is, the flow ends here.  
+If we continue, it sets the requested mode.   
 It then checks if the mode that has been set is OperatingMode = "1" (manual/API mode). If that's the case, it also sets charging and discharging to zero. 
 Reason: The SonnenBatterie retains the last API setting between mode changes. So, if it has been charging in OM=1, then set to automatic and then later (here) is set to OM=1 again, it will start charging again.   
 This node is used in the "Discharge Control" flow only, so I can assume I want it to idle here (neither charge nor discharge).   
