@@ -54,7 +54,7 @@ We'll follow a simple three-step process:
 3) Select the SD Card
 
 #### Device
-We have a Pi Zero 2W, so let's choose that (this is just a helper, filtering the available options - if you have a different Pi, you can choose that or just use the "no filtering" option).
+We have a Pi Zero 2W, so let's choose that (this is just a helper, filtering the available options - if you have a different Pi, you can choose that or just use the "no filtering" option).  
 ![](./images/selectdevice.png)
 
 #### Operating System

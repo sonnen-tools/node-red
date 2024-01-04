@@ -13,7 +13,7 @@ So, to avoid error messages, we first install those dependencies. However, if yo
 
 ### Manage Palette 
 
-Go to the "Burger Icon" on the top right and thenm select "Manage Palette"
+Go to the "Burger Icon" on the top right and then select "Manage Palette"
 
 ![](./images/menu_managepalette.png)
 
@@ -53,7 +53,7 @@ Then click on the "select a file to import" and import the flow file we just sav
 
 ![](./images/import-dialogue.png)
 
-After importing, you should see the follwoing message, without errors or warnings:
+After importing, you should see the following message, without errors or warnings:
 
 ![](./images/import-successful.png)
 
@@ -94,9 +94,12 @@ Double-Click on the Sonnenbatterie Config node - you need to set your API Token 
 
 ## Deploy
 
-After you have configured everything above, click "Deploy". This will deploy and start the flow on your Pi. This will run continuously without the browser UI, so if you wanted, you _could_ close the browser window now.
+After you have configured everything above, click "Deploy". This will deploy and start the flow on your Pi. This will run continuously without the browser UI, so if you wanted, you _could_ close the browser window now, since we're done with importing (and configuring, deploying) the flow.
 
-### Checking Values
+![](./images/done.png)
+
+
+## Checking Values
 
 If you want, you can open the "Context" and check what the current values are:
 
@@ -104,8 +107,8 @@ On the right, click on the little triangle "twistie" icon, and then open "Contex
 
 ![](./images/context-access.png)
 
-You need to click on "refresh to see updated values (or any values, if you use it the first time).  
-Then, in the "Flow" Context, you can see the identified "cheap hours" and their prices. For an explanation how these are calculated, see ["Calculation"](../../calculation.md)
+You need to click on "refresh" to see updated values (or any values, if you use it the first time).  
+Then, in the "Flow" Context, you can see the identified "cheap hours" and their prices. For an explanation of how these are calculated, see ["Calculation"](../../calculation.md)
 
 ![](./images/flow-context.png)
 
