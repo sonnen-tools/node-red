@@ -28,6 +28,8 @@ Or you can jump directly to the [Overview](./docs/overview.md) and read up on th
 
 Have fun - and leave an issue or a note (in discussions) if you have a problem or an idea how things could be improved. Or, fork it and create a PR.
 
+[Release notes](releasenotes.md)
+
 Either way - enjoy.
 
 Cheers,
