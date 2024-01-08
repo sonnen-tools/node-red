@@ -26,11 +26,11 @@
         ],
         "out": [
             {
-                "x": 760,
+                "x": 980,
                 "y": 80,
                 "wires": [
                     {
-                        "id": "96757557d82491fb",
+                        "id": "84fd618ea5c8baca",
                         "port": 0
                     }
                 ]
@@ -135,7 +135,55 @@
         "x": 570,
         "y": 80,
         "wires": [
-            []
+            [
+                "84fd618ea5c8baca"
+            ]
+        ]
+    },
+    {
+        "id": "84fd618ea5c8baca",
+        "type": "function",
+        "z": "c303c08096ca06f0",
+        "name": "testForErrors",
+        "func": "\nconst allowedStatusCodes = [200, 201, 202, 203, 204, 205, 206];\n\nvar numErrors = msg.numErrors;\n\nif (typeof numErrors == 'undefined') {\n    numErrors = 0;\n}\n\nconst returnCode = msg.statusCode;\n\nif (allowedStatusCodes.includes(returnCode)) {\n\nreturn [msg, null];\n\n} else {\n\n    numErrors = numErrors +1 ;\n    msg.numErrors = numErrors;\n\n    node.log(\"Error \" + returnCode + \" encountered, retrying\")\n    node.log(\"Retry # \" + numErrors);\n\n    if (numErrors <= 10) {\n        return [null, msg];\n    } else {\n        node.log(\"maximum number of retries reached. Stopping.\");\n    }\n\n\n}\n\n\n\n\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 830,
+        "y": 80,
+        "wires": [
+            [],
+            [
+                "632fd166a9f24037"
+            ]
+        ]
+    },
+    {
+        "id": "632fd166a9f24037",
+        "type": "delay",
+        "z": "c303c08096ca06f0",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "10",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 200,
+        "y": 180,
+        "wires": [
+            [
+                "e4ede092a5904284"
+            ]
         ]
     },
     {
@@ -817,7 +865,7 @@
             {
                 "p": "maxPrice",
                 "pt": "flow",
-                "to": "0.31",
+                "to": "0.316",
                 "tot": "num"
             },
             {
@@ -837,6 +885,18 @@
                 "pt": "flow",
                 "to": "average_five",
                 "tot": "str"
+            },
+            {
+                "p": "pvSurplusThreshold",
+                "pt": "flow",
+                "to": "50",
+                "tot": "num"
+            },
+            {
+                "p": "wallboxDetectionThreshold",
+                "pt": "flow",
+                "to": "9000",
+                "tot": "num"
             }
         ],
         "active": true,
@@ -1005,7 +1065,7 @@
             {
                 "p": "sonnen_target_soc",
                 "pt": "global",
-                "to": "56",
+                "to": "97",
                 "tot": "num"
             },
             {
@@ -1017,7 +1077,7 @@
             {
                 "p": "sonnen_discharge_control",
                 "pt": "flow",
-                "to": "false",
+                "to": "true",
                 "tot": "bool"
             }
         ],
@@ -1413,7 +1473,7 @@
         "type": "function",
         "z": "9c9f23e35e225b55",
         "name": "shouldIDischarge?",
-        "func": "//get the current Tibber Price and compare to what we charged the battery with * lossFactor\n//if we current prices are cheaper, we should stop the battery from discharging\n\n\nconst today = global.get(\"tibber_today\");\n\nconst globalLoglevel = global.get(\"loglevel\");\nconst trace = (globalLoglevel == \"TRACE\");\n\n\nconst lossFactor = flow.get(\"conversion_loss_factor\"); //e.g. 1.2 for 20% loss\nconst batteryPrice = msg.batteryAverageCost;\nconst factoredBatteryAverage = batteryPrice * lossFactor;\nconst stateOfCharge = msg.payload.USOC; \n\n\nconst now = new Date();\n\n// Function to check if a startsAt date is within the full hour of a given date\nfunction isWithinFullHour(startsAtDate, referenceDate) {\n  return (\n    startsAtDate.getDate() === referenceDate.getDate() &&\n    startsAtDate.getHours() === referenceDate.getHours()\n  );\n}\n\nconst matchingPrice = today.find(item => {\n  const startsAtDate = new Date(item.startsAt);\n  return isWithinFullHour(startsAtDate, now);\n});\n\nconst currentPrice = matchingPrice.total;\n\nnode.warn(\"SoC \" + stateOfCharge);\nif (stateOfCharge == 0) {\n\n  //battery is empty, so we can clean up the charge log\n  const emptyChargeLog = [];\n  global.set(\"chargeLog\", emptyChargeLog);\n\n  node.status({ fill: \"yellow\", shape: \"dot\", text: \"Battery empty\" });\n  if (trace) {\n    node.log(\"The battery is empty, deleting charge log.\");\n  }\n  \n  \n  flow.set(\"dcCurrentPrice\", currentPrice);\n  flow.set(\"dcBatteryPrice\", \" - \");\n  flow.set(\"dcStatus\", \"Battery empty\");\n\n  \n  \n  //do nothing, send to 2nd output\n  return [null, msg];\n}\n\n\n\nif (currentPrice > factoredBatteryAverage){\n/* The Battery should be allowed to discharge (normal mode, OM=2), since \n   the current Tibber Price is higher than the adjusted average of the battery\n\n*/\n  node.status({ fill: \"green\", shape: \"dot\", text: \"yes - Tibber: \" + currentPrice + \" battery: \" + factoredBatteryAverage.toFixed(4) });\n  if (trace) {\n    node.log(\"Current Price is \" + currentPrice);\n    node.log(\"Battery Price incl conversion loss is \" + factoredBatteryAverage.toFixed(4));\n    node.log(\"Loss factor: \" + lossFactor);\n    node.log(\"GREEN - discharging allowed, setting Battery to self-consumption mode\");\n  }\n  flow.set(\"dcCurrentPrice\", currentPrice);\n  flow.set(\"dcBatteryPrice\", factoredBatteryAverage.toFixed(4));\n  flow.set(\"dcStatus\", \"Discharging allowed, setting Battery to self-consumption mode\");\n  msg.batteryMode = \"2\";\n  \n} else {\n/* The Battery should not be allowed to discharge, \n   since the current Tibber Price is below the factored average of what's in the battery \n   (setting to manual mode, so now it is neither charging nor discharging until we tell it to)\n   ATTENTION: This also means that when there is PV surplus, it won't be stored.\n              That's why we probably shouldn't be using this (set \"sonnen_discharge_control\" to false)\n              during summer...\n              Idea for later - add some more functionality to watch PV surplus according to API for a while,\n              then act on it.\n*/\n  node.status({ fill: \"red\", shape: \"dot\", text: \"no - Tibber: \" + currentPrice + \" battery: \" + factoredBatteryAverage.toFixed(4) });\n  if (trace) {\n    node.log(\"Current Price is \" + currentPrice);\n    node.log(\"Battery Price incl conversion loss is \" + factoredBatteryAverage.toFixed(4));\n    node.log(\"Loss factor: \" + lossFactor);\n    node.log(\"RED - discharging not allowed, Tibber is currently cheaper than what's in the battery\");\n    node.log(\"Blocking battery discharge (OperatingMode 1, manual/API)\");\n  }\n  flow.set(\"dcCurrentPrice\", currentPrice);\n  flow.set(\"dcBatteryPrice\", factoredBatteryAverage.toFixed(4));\n  flow.set(\"dcStatus\", \"Discharging not allowed, Tibber is currently cheaper than what's in the battery\");\n\n  msg.batteryMode = \"1\";\n  \n}\n\nreturn [msg, null];\n",
+        "func": "//get the current Tibber Price and compare to what we charged the battery with * lossFactor\n//if we current prices are cheaper, we should stop the battery from discharging\n\n\nconst today = global.get(\"tibber_today\");\n\nconst globalLoglevel = global.get(\"loglevel\");\nconst trace = (globalLoglevel == \"TRACE\");\n\n\nconst lossFactor = flow.get(\"conversion_loss_factor\"); //e.g. 1.2 for 20% loss\nconst batteryPrice = msg.batteryAverageCost;\nconst factoredBatteryAverage = batteryPrice * lossFactor;\nconst stateOfCharge = msg.payload.USOC; \nconst operatingMode = msg.payload.OperatingMode;\n\nconst surplusThreshold = flow.get(\"pvSurplusThreshold\");\nconst wbDetectionThreshold = flow.get(\"wallboxDetectionThreshold\");\n\nconst currentFeedIn = msg.payload.GridFeedIn_W;\nconst currentProduction = msg.payload.Production_W;\nconst currentConsumption = msg.payload.Consumption_W;\nconst surplus = currentProduction - currentConsumption;\n\n\n\n\n\nconst now = new Date();\n\n// Function to check if a startsAt date is within the full hour of a given date\nfunction isWithinFullHour(startsAtDate, referenceDate) {\n  return (\n    startsAtDate.getDate() === referenceDate.getDate() &&\n    startsAtDate.getHours() === referenceDate.getHours()\n  );\n}\n\nconst matchingPrice = today.find(item => {\n  const startsAtDate = new Date(item.startsAt);\n  return isWithinFullHour(startsAtDate, now);\n});\n\nconst currentPrice = matchingPrice.total;\n\n//node.warn(\"SoC \" + stateOfCharge);\nif (stateOfCharge == 0) {\n\n  //battery is empty, so we can clean up the charge log\n  const emptyChargeLog = [];\n  global.set(\"chargeLog\", emptyChargeLog);\n\n  node.status({ fill: \"yellow\", shape: \"dot\", text: \"Battery empty\" });\n  if (trace) {\n    node.log(\"The battery is empty, deleting charge log.\");\n  }\n  \n  \n  flow.set(\"dcCurrentPrice\", currentPrice);\n  flow.set(\"dcBatteryPrice\", \" - \");\n  flow.set(\"dcSurplus\", surplus);\n  flow.set(\"dcStatus\", \"Battery empty\");\n\n  \n  \n  //there's nothing to do, but we should check if we need to reset the battery to default (self-consumption) mode so it can pickup surplus\n  //want to avoid the situation where we ended with OM=1 on discharge (shouldn't happen, but maybe a run condition leads to that)\n  //and then never change it back, so it stays at 0% and can't charge until we tell it to charge from grid again.\n\n  if (operatingMode == \"1\") {\n    if (trace) {\n      node.log(\"Battery empty but OM=1 (manual/API) detected. Resetting to default (self-consumption)\");\n    }\n    msg.batteryMode = \"2\";\n    return [msg, null];\n  } else {\n    //goes to second output\n    return [null, msg];\n  }\n}\n\nif (currentConsumption > wbDetectionThreshold) {\n  /* we have detected consumption above a threshold, probably a car charger / wallbox. \n  If we don't want the wallbox to suck the battery empty in no time, we need to stop discharging here.\n  If it goes below that threshold again, the code will continue below and decide if it should be allowed\n  to discharge based on Tibber prices.\n  If it is charging anyway, we won't be in this flow (\"shouldIBeCharging\") will have forwarded the message to the charging flow\n  \n  */\n\n  node.status({ fill: \"black\", shape: \"dot\", text: \"High load detected (Wallbox?) - \"+ currentConsumption +\" W - switching off discharging\"});\n  if (trace) {\n      node.log(\"Surplus: \" + surplus);\n      node.log(\"Current Price is \" + currentPrice);\n      node.log(\"Battery Price incl conversion loss is \" + factoredBatteryAverage.toFixed(4));\n      node.log(\"Loss factor: \" + lossFactor);\n      node.log(\"BLACK - High load detected (Wallbox?)\");\n      node.log(currentConsumption + \" W - switching off discharging\");\n    }\n    flow.set(\"dcCurrentPrice\", currentPrice);\n    flow.set(\"dcBatteryPrice\", factoredBatteryAverage.toFixed(4));\n    flow.set(\"dcSurplus\", surplus);\n    flow.set(\"dcStatus\", \"High load detected (Wallbox?) \" + currentConsumption + \" W - switching off discharging\");\n\n    msg.batteryMode = \"1\";\n\n    return [msg, null]; //flow ends here after passing on message\n}\n\n\n\n\n\n\n\n\n\nif (currentPrice > factoredBatteryAverage){\n/* The Battery should be allowed to discharge (normal mode, OM=2), since \n   the current Tibber Price is higher than the adjusted average of the battery\n\n*/\n  node.status({ fill: \"green\", shape: \"dot\", text: \"yes - Tibber: \" + currentPrice + \" battery: \" + factoredBatteryAverage.toFixed(4) });\n  if (trace) {\n    node.log(\"Surplus: \" + surplus);\n    node.log(\"Current Price is \" + currentPrice);\n    node.log(\"Battery Price incl conversion loss is \" + factoredBatteryAverage.toFixed(4));\n    node.log(\"Loss factor: \" + lossFactor);\n    node.log(\"GREEN - discharging allowed, setting Battery to self-consumption mode\");\n  }\n  flow.set(\"dcCurrentPrice\", currentPrice);\n  flow.set(\"dcBatteryPrice\", factoredBatteryAverage.toFixed(4));\n  flow.set(\"dcSurplus\", surplus);\n  flow.set(\"dcStatus\", \"Discharging allowed, setting Battery to self-consumption mode\");\n  msg.batteryMode = \"2\";\n  \n} else {\n/* The Battery should not be allowed to discharge, \n   since the current Tibber Price is below the factored average of what's in the battery \n   (setting to manual mode, so now it is neither charging nor discharging until we tell it to)\n\n     if our production exceeds our consumption, we have surplus.\n     in that case, we shouldn't set the battery to \"idle\" because this would also stop the battery \n     from picking up our surplus.\n\n     Using a threshold, so we're not switching if we have just a little surplus (due to switching loads, etc.)\n\n*/ \n\n  if (surplus > surplusThreshold) {\n\n    node.status({ fill: \"blue\", shape: \"dot\", text: \"no, but we have surplus: \" + surplus });\n    if(trace) {\n      node.log(\"Surplus detected: \"+ surplus);\n      node.log(\"Current Price is \" + currentPrice);\n      node.log(\"Battery Price incl conversion loss is \" + factoredBatteryAverage.toFixed(4));\n      node.log(\"Loss factor: \" + lossFactor);\n      node.log(\"BLUE - we shouldn't discharge but we have surplus\");\n      node.log(\"setting Battery to self-consumption mode\");\n    }\n    flow.set(\"dcCurrentPrice\", currentPrice);\n    flow.set(\"dcBatteryPrice\", factoredBatteryAverage.toFixed(4));\n    flow.set(\"dcSurplus\", surplus);\n    flow.set(\"dcStatus\", \"We shouldn't discharge (Tibber is currently cheaper than what's in the battery) but we have surplus\");\n    msg.batteryMode = \"2\";\n\n  } else {\n    node.status({ fill: \"red\", shape: \"dot\", text: \"no - Tibber: \" + currentPrice + \" battery: \" + factoredBatteryAverage.toFixed(4) });\n    if (trace) {\n      node.log(\"Surplus: \" + surplus);\n      node.log(\"Current Price is \" + currentPrice);\n      node.log(\"Battery Price incl conversion loss is \" + factoredBatteryAverage.toFixed(4));\n      node.log(\"Loss factor: \" + lossFactor);\n      node.log(\"RED - discharging not allowed, Tibber is currently cheaper than what's in the battery\");\n      node.log(\"Blocking battery discharge (OperatingMode 1, manual/API)\");\n    }\n    flow.set(\"dcCurrentPrice\", currentPrice);\n    flow.set(\"dcBatteryPrice\", factoredBatteryAverage.toFixed(4));\n    flow.set(\"dcSurplus\", surplus);\n    flow.set(\"dcStatus\", \"Discharging not allowed, Tibber is currently cheaper than what's in the battery\");\n\n    msg.batteryMode = \"1\";\n\n\n  }\n  \n}\n\nreturn [msg, null];\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1523,7 +1583,7 @@
         "type": "comment",
         "z": "9c9f23e35e225b55",
         "name": "Version History",
-        "info": "# V0.0.2-WIP   2024-01-06\n- added flow.calcMode (average_all or average_five), calculates base average across all or across top 5m default is _all\n- added tooltip to prices on status page\n- added discharge control settings and values on status page\n\n\n# V0.0.1-WIP   2024-01-05   \n - started versioning, added some debug logging  \n -  - (enable via GLOBAL.loglevel = \"TRACE\" in Cheapest Hours Config) \n - added /status page\n - Bugfix: Tibber push was broken due to newlines (which Tibber doesn't like)  \n - Some minor fixes (formatting, etc) \n\n",
+        "info": "# V0.0.3-WIP   2024-01-08\n- fixed https://github.com/sonnen-tools/node-red/issues/6\n- added pvSurplusThreshold, if surplus exceeds threshold, we won't set the battery to \"idle\" even if we shouldn't discharge\n  this way, the battery can pick up the surplus during times when the average cost of the battery is higher than the current Tibber price \n- added wallboxDetectionThreshold. If above (default 9000W) then the battery won't discharge\n\n\n\n# V0.0.2-WIP   2024-01-06\n- added flow.calcMode (average_all or average_five), calculates base average across all or across top 5m default is _all\n- added tooltip to prices on status page\n- added discharge control settings and values on status page\n\n\n# V0.0.1-WIP   2024-01-05   \n - started versioning, added some debug logging  \n -  - (enable via GLOBAL.loglevel = \"TRACE\" in Cheapest Hours Config) \n - added /status page\n - Bugfix: Tibber push was broken due to newlines (which Tibber doesn't like)  \n - Some minor fixes (formatting, etc) \n\n",
         "x": 140,
         "y": 60,
         "wires": []
@@ -1553,7 +1613,7 @@
         "type": "function",
         "z": "9c9f23e35e225b55",
         "name": "collectInfo",
-        "func": "const tibber_today = global.get(\"tibber_today\");\nconst tibber_tomorrow = global.get(\"tibber_tomorrow\");\n//const tibber_tomorrow = [];\nconst cheapHours = flow.get(\"cheapHours\");\nconst conversion_loss_factor = flow.get(\"conversion_loss_factor\");\nconst maxPrice = flow.get(\"maxPrice\");\nconst sonnen_discharge_control = flow.get(\"sonnen_discharge_control\");\n\nconst chargeLog = global.get(\"chargeLog\");\n\nconst currentSoc = msg.payload.USOC;\nconst operatingMode = msg.payload.OperatingMode;\nconst currentProduction = msg.payload.Production_W;\n\nvar dcTableRows = \"\";\n\nif (sonnen_discharge_control) {\n   dcTableRows = \"<tr><td>Current Tibber Price</td><td>\" + flow.get(\"dcCurrentPrice\") + \"</td></tr><tr><td>Battery Price (incl. loss)</td><td>\" + flow.get(\"dcBatteryPrice\") + \"</td></tr><tr><td colspan=2 >\" + flow.get(\"dcStatus\") + \"</td></tr>\";\n} \n\n\n\n\n\n\nmsg.chargeLog = JSON.stringify(chargeLog);\nmsg.cheapHours = JSON.stringify(cheapHours);\nmsg.currentSoc = currentSoc;\nmsg.currentProduction = currentProduction;\nmsg.operatingMode = operatingMode;\nmsg.tibber_today = JSON.stringify(tibber_today);\nmsg.tibber_tomorrow = JSON.stringify(tibber_tomorrow);\nmsg.tibber_all = JSON.stringify(tibber_today.concat(tibber_tomorrow));\nmsg.displayMode = (operatingMode == \"1\" ? \"Manual / API controlled\" :\n                   operatingMode == \"2\" ? \"Automatic (Self-Consumption)\" :\n                  \"Unknown Mode\");\nmsg.displayDischargeControl = (sonnen_discharge_control) ? \"on\":\"off\";\nmsg.dcBatteryPrice = flow.get(\"dcBatteryPrice\");\nmsg.dcCurrentPrice = flow.get(\"dcCurrentPrice\");\nmsg.dcStatus = flow.get(\"dcStatus\");\nmsg.dcTableRows = dcTableRows;\n\n\n\nreturn msg;\n\n",
+        "func": "const tibber_today = global.get(\"tibber_today\");\nconst tibber_tomorrow = global.get(\"tibber_tomorrow\");\n//const tibber_tomorrow = [];\nconst cheapHours = flow.get(\"cheapHours\");\nconst conversion_loss_factor = flow.get(\"conversion_loss_factor\");\nconst maxPrice = flow.get(\"maxPrice\");\nconst sonnen_discharge_control = flow.get(\"sonnen_discharge_control\");\n\nconst chargeLog = global.get(\"chargeLog\");\n\nconst currentSoc = msg.payload.USOC;\nconst operatingMode = msg.payload.OperatingMode;\n\nconst currentProduction = msg.payload.Production_W;\nconst currentConsumption = msg.payload.Consumption_W;\nconst surplus = currentProduction - currentConsumption;\n\nvar dcTableRows = \"\";\n\nif (sonnen_discharge_control) {\n   dcTableRows = \"<tr><td>Current Surplus</td><td>\" + surplus +  \n   \"</td></tr><tr><td>Current Tibber Price</td><td>\" + flow.get(\"dcCurrentPrice\") +  \n   \"</td></tr><tr><td>Battery Price (incl. loss)</td><td>\" + flow.get(\"dcBatteryPrice\") + \n   \"</td></tr><tr><td colspan=2 >\" + flow.get(\"dcStatus\") + \"</td></tr>\";\n} \n\n\n\n\n\n\nmsg.chargeLog = JSON.stringify(chargeLog);\nmsg.cheapHours = JSON.stringify(cheapHours);\nmsg.currentSoc = currentSoc;\nmsg.currentProduction = currentProduction;\nmsg.currentConsumption = currentConsumption;\nmsg.operatingMode = operatingMode;\nmsg.tibber_today = JSON.stringify(tibber_today);\nmsg.tibber_tomorrow = JSON.stringify(tibber_tomorrow);\nmsg.tibber_all = JSON.stringify(tibber_today.concat(tibber_tomorrow));\nmsg.displayMode = (operatingMode == \"1\" ? \"Manual / API controlled\" :\n                   operatingMode == \"2\" ? \"Automatic (Self-Consumption)\" :\n                  \"Unknown Mode\");\nmsg.displayDischargeControl = (sonnen_discharge_control) ? \"on\":\"off\";\nmsg.dcBatteryPrice = flow.get(\"dcBatteryPrice\");\nmsg.dcCurrentPrice = flow.get(\"dcCurrentPrice\");\nmsg.dcStatus = flow.get(\"dcStatus\");\nmsg.dcTableRows = dcTableRows;\n\n\n\nreturn msg;\n\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -1625,7 +1685,7 @@
         "fieldType": "msg",
         "format": "html",
         "syntax": "mustache",
-        "template": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <script src=\"https://d3js.org/d3.v5.min.js\"></script>\n  <title>SonnenBatterie Charge Control Status</title>\n  <style>\n    body {\n      font-family: 'Arial', sans-serif;\n    }\n\n    table {\n      border-collapse: collapse;\n      \n    }\n\n    th, td {\n      border: 1px solid #ddd;\n      padding: 8px;\n      text-align: left;\n      vertical-align: top;\n    }\n\n    th {\n      background-color: #f2f2f2;\n    }\n\n    .tooltip {\n    position: absolute;\n    background-color: white;\n    border: 1px solid #ccc;\n    padding: 10px;\n    pointer-events: none;\n\n    }\n  </style>\n\n  \n</head>\n<body>\n\n<br>\n<table id=\"hoursAndGraph\">\n<tr>\n  <td>\n    <table id=\"cheapHoursTable\">\n      <tr><th colspan=2>Cheap Hours</th></tr>\n      <tr>\n        <th>Starts at</th>\n        <th>Cost</th>\n      </tr>\n    </table>\n  </td>\n  <td>\n    <div id=\"bar-chart\" style=\"width: 800px; height: 400px; position: relative; border: 0px;\"></div>\n  </td>\n</tr>\n<tr>\n  <td>\n    <table id=\"averages\">\n      <tr><th colspan=2>Calculation</th></tr>\n      <tr>\n        <td>Calc Mode</td>\n        <td>{{{flow.calcMode}}}</td>\n      </tr>\n      <tr>\n        <td>Average All</td>\n        <td>{{{flow.averageAll}}}</td>\n      </tr>\n      <tr>\n        <td>Average Top 5</td>\n        <td>{{{flow.average_top_5}}}</td>\n      </tr>\n      <tr>\n        <td><b><i>Effective</i></b> Average Price</td><td>{{{flow.averagePrice}}}</td>\n      </tr>\n      <tr>\n        <td>Calculated Max (incl. loss)</td><td>{{{flow.calculatedMaxPrice}}}</td>\n      </tr>\n      <tr>\n        <td>User maxPrice</td><td>{{{flow.maxPrice}}}</td>\n      </tr>\n      <tr>\n        <td><b><i>Effective</i></b> Max for charging</td><td>{{{flow.effectiveMaxPrice}}}</td>\n      </tr>\n      <tr><td>Conversion loss</td><td>{{{flow.conversion_loss_factor}}}</td></tr>\n    </table>\n  </td>\n  <td>\n    <table id=\"miscTable\">\n      <tr><th colspan=2>Misc Values</th></tr>\n      <tr><td>isBatteryCharging</td><td>{{{global.isBatteryCharging}}}</td></tr>\n      <tr><td>Operatingmode</td><td>{{{displayMode}}}</td></tr>\n      <tr><td>Target SoC</td><td>{{{global.sonnen_target_soc}}}</td></tr>\n      <tr><td>Current SoC</td><td>{{{currentSoc}}}</td></tr>\n      <tr><td>Current Production</td><td>{{{currentProduction}}}</td></tr>\n      <tr style=\"background-color: #f2f2f2;\"><td>Discharge Control</td><td>{{{displayDischargeControl}}}</td>\n      {{{dcTableRows}}}\n    </table>\n\n  </td>\n</tr> \n<tr>\n  <td colspan=2>\n    <table id=\"chargeLogTable\">\n      <tr>\n        <th colspan=4>Charge Log</th>\n      </tr>\n      <tr>\n        <th>Timestamp</th>\n        <th>Cost</th>\n        <th>WattHours</th>\n      </tr>\n    </table>\n  </td>\n</tr> \n</table>\n\n<br>\n<br><br>\n\n\n<script>\n  {{{payload.tableScripts}}}\n  {{{payload.graphScripts}}}\n</script>\n\n</body>\n</html>\n",
+        "template": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <script src=\"https://d3js.org/d3.v5.min.js\"></script>\n  <title>SonnenBatterie Charge Control Status</title>\n  <style>\n    body {\n      font-family: 'Arial', sans-serif;\n    }\n\n    table {\n      border-collapse: collapse;\n      \n    }\n\n    th, td {\n      border: 1px solid #ddd;\n      padding: 8px;\n      text-align: left;\n      vertical-align: top;\n    }\n\n    th {\n      background-color: #f2f2f2;\n    }\n\n    .tooltip {\n    position: absolute;\n    background-color: white;\n    border: 1px solid #ccc;\n    padding: 10px;\n    pointer-events: none;\n\n    }\n  </style>\n\n  \n</head>\n<body>\n\n<br>\n<table id=\"hoursAndGraph\">\n<tr>\n  <td>\n    <table id=\"cheapHoursTable\">\n      <tr><th colspan=2>Cheap Hours</th></tr>\n      <tr>\n        <th>Starts at</th>\n        <th>Cost</th>\n      </tr>\n    </table>\n  </td>\n  <td>\n    <div id=\"bar-chart\" style=\"width: 800px; height: 400px; position: relative; border: 0px;\"></div>\n  </td>\n</tr>\n<tr>\n  <td>\n    <table id=\"averages\">\n      <tr><th colspan=2>Calculation</th></tr>\n      <tr>\n        <td>Calc Mode</td>\n        <td>{{{flow.calcMode}}}</td>\n      </tr>\n      <tr>\n        <td>Average All</td>\n        <td>{{{flow.averageAll}}}</td>\n      </tr>\n      <tr>\n        <td>Average Top 5</td>\n        <td>{{{flow.average_top_5}}}</td>\n      </tr>\n      <tr>\n        <td><b><i>Effective</i></b> Average Price</td><td>{{{flow.averagePrice}}}</td>\n      </tr>\n      <tr>\n        <td>Calculated Max (incl. loss)</td><td>{{{flow.calculatedMaxPrice}}}</td>\n      </tr>\n      <tr>\n        <td>User maxPrice</td><td>{{{flow.maxPrice}}}</td>\n      </tr>\n      <tr>\n        <td><b><i>Effective</i></b> Max for charging</td><td>{{{flow.effectiveMaxPrice}}}</td>\n      </tr>\n      <tr><td>Conversion loss</td><td>{{{flow.conversion_loss_factor}}}</td></tr>\n    </table>\n  </td>\n  <td>\n    <table id=\"miscTable\">\n      <tr><th colspan=2>Misc Values</th></tr>\n      <tr><td>isBatteryCharging</td><td>{{{global.isBatteryCharging}}}</td></tr>\n      <tr><td>Operatingmode</td><td>{{{displayMode}}}</td></tr>\n      <tr><td>Target SoC</td><td>{{{global.sonnen_target_soc}}}</td></tr>\n      <tr><td>Current SoC</td><td>{{{currentSoc}}}</td></tr>\n      <tr><td>Current Production</td><td>{{{currentProduction}}}</td></tr>\n      <tr><td>Current Consumption</td><td>{{{currentConsumption}}}</td></tr>\n      <tr style=\"background-color: #f2f2f2;\"><td>Discharge Control</td><td>{{{displayDischargeControl}}}</td>\n      {{{dcTableRows}}}\n    </table>\n\n  </td>\n</tr> \n<tr>\n  <td colspan=2>\n    <table id=\"chargeLogTable\">\n      <tr>\n        <th colspan=4>Charge Log</th>\n      </tr>\n      <tr>\n        <th>Timestamp</th>\n        <th>Cost</th>\n        <th>WattHours</th>\n      </tr>\n    </table>\n  </td>\n</tr> \n</table>\n\n<br>\n<br><br>\n\n\n<script>\n  {{{payload.tableScripts}}}\n  {{{payload.graphScripts}}}\n</script>\n\n</body>\n</html>\n",
         "output": "str",
         "x": 1390,
         "y": 980,
