@@ -6,6 +6,9 @@ As this thing is continuously being developed, I though it might be wise to add 
 
 |Date   |Version   |Notes   |
 |---|---|---|
+|2024-01-11|--| To address this issue https://github.com/sonnen-tools/node-red/issues/13 I have added documentation about [context persistence](./docs/setup/nodered/context-persistence.md) (your data is stored in files and safe across restarts)|
+|||However, that is a Node-RED wide setting that you need to configure if you need it. There is no way to set this from a flow|
+||||
 |2024-01-08| V0.0.3-WIP| fixed https://github.com/sonnen-tools/node-red/issues/6 (hopefully, under testing currently)|
 |||**added pvSurplusThreshold**, if surplus exceeds threshold, we won't set the battery to "idle" even if we shouldn't discharge|
 |||this way, the battery can pick up the surplus during times when the average cost of the battery is higher than the current Tibber price |
