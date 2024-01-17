@@ -1,0 +1,303 @@
+[
+    {
+        "id": "0c9638a28e20f4cd",
+        "type": "subflow",
+        "name": "Raspberry - Check & Restart mDNS",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 280,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "22428f10a92e7d95"
+                    }
+                ]
+            }
+        ],
+        "out": [],
+        "env": [],
+        "meta": {},
+        "color": "#DDAA99",
+        "icon": "node-red/rpi.svg"
+    },
+    {
+        "id": "e4cd16018d0a7598",
+        "type": "exec",
+        "z": "0c9638a28e20f4cd",
+        "command": "sudo systemctl restart avahi-daemon.service",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "30",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 530,
+        "y": 680,
+        "wires": [
+            [
+                "ef5fcb2fa5984be4"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "9518b2db3fb508b3",
+        "type": "inject",
+        "z": "0c9638a28e20f4cd",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 680,
+        "wires": [
+            [
+                "e4cd16018d0a7598"
+            ]
+        ]
+    },
+    {
+        "id": "c93414e9cdc8edba",
+        "type": "exec",
+        "z": "0c9638a28e20f4cd",
+        "command": "sudo systemctl status avahi-daemon.service | grep 'Active:' | awk '{print $2, $3}'",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "Is Avahi active (systemctl)",
+        "x": 470,
+        "y": 280,
+        "wires": [
+            [
+                "cf328de4cbd8180c"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "73a537b3bda4f68c",
+        "type": "inject",
+        "z": "0c9638a28e20f4cd",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 280,
+        "wires": [
+            [
+                "c93414e9cdc8edba"
+            ]
+        ]
+    },
+    {
+        "id": "22428f10a92e7d95",
+        "type": "exec",
+        "z": "0c9638a28e20f4cd",
+        "command": "hostname",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 420,
+        "y": 80,
+        "wires": [
+            [
+                "4652d0c4f6d8caa5"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "4652d0c4f6d8caa5",
+        "type": "change",
+        "z": "0c9638a28e20f4cd",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "hostname",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 650,
+        "y": 80,
+        "wires": [
+            [
+                "c93414e9cdc8edba"
+            ]
+        ]
+    },
+    {
+        "id": "bfe0f1329cfaa716",
+        "type": "exec",
+        "z": "0c9638a28e20f4cd",
+        "command": "sudo systemctl status avahi-daemon.service | grep 'avahi-daemon: running' | sed -n 's/.*\\[\\(.*\\)\\].*/\\1/p'",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "Avahi mDNS name",
+        "x": 710,
+        "y": 380,
+        "wires": [
+            [
+                "fa88830b53ddfa84"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "cf328de4cbd8180c",
+        "type": "function",
+        "z": "0c9638a28e20f4cd",
+        "name": "check if avahi is active",
+        "func": "const status_raw = msg.payload;\nconst active = \"active (running)\";\n\nconst status = status_raw.replace(/[\\r\\n]+$/, '');\n\nif (status == active) {\n\nnode.log(\"Check: Avahi (mDNS) is active\");\nreturn [msg, null]; \n\n} else {\n\nnode.log(\"Check: Avahi (mDNS) NOT active, (re-)starting\");\nreturn [null, msg];\n\n}\n\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 380,
+        "wires": [
+            [
+                "bfe0f1329cfaa716"
+            ],
+            [
+                "e4cd16018d0a7598"
+            ]
+        ]
+    },
+    {
+        "id": "fa88830b53ddfa84",
+        "type": "function",
+        "z": "0c9638a28e20f4cd",
+        "name": "Check if mDNS name is ok",
+        "func": "const mDNS_raw = msg.payload;\nconst mDNS = mDNS_raw.replace(/[\\r\\n]+$/, '');\n\nconst hostname_raw = flow.get(\"hostname\");\nconst hostname = hostname_raw.replace(/[\\r\\n]+$/, '');\n\nconst mDNS_new = hostname + \".local\";\n\nif (mDNS == mDNS_new) {\n\n    node.log(\"Check: mDNS name is ok: \" + mDNS);\n    \n} else {\n\n    node.log(\"Check: mDNS name is NOT OK: \" + mDNS);\n    node.log(\"Expected:                   \" + mDNS_new); \n    node.log(\"-- Restarting avahi-daemon --\");\n    return msg;\n\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1080,
+        "y": 380,
+        "wires": [
+            [
+                "e4cd16018d0a7598"
+            ]
+        ]
+    },
+    {
+        "id": "ef5fcb2fa5984be4",
+        "type": "function",
+        "z": "0c9638a28e20f4cd",
+        "name": "Log Restart ReturnCode",
+        "func": "const returnCode = msg.rc.code;\n\nif (returnCode != 0) {\n    node.warn(\"***problem restarting avahi***\");\n} else {\n    node.log(\"avahi daemon restarted\");\n}\n\n\n\n",
+        "outputs": 0,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 890,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "d0ecebaa8fb264c5",
+        "type": "tab",
+        "label": "RPI Helpers",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "20c5c9096fa183f3",
+        "type": "inject",
+        "z": "d0ecebaa8fb264c5",
+        "name": "Check once an hour",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "120",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "f59db26692bea156"
+            ]
+        ]
+    },
+    {
+        "id": "f59db26692bea156",
+        "type": "subflow:0c9638a28e20f4cd",
+        "z": "d0ecebaa8fb264c5",
+        "name": "",
+        "x": 490,
+        "y": 100,
+        "wires": []
+    }
+]

@@ -120,7 +120,9 @@ So, open a terminal (or puTTY) and connect to your Pi with its short name (that 
 > **Note:** I have noticed that sometimes the "mDNS" server on the Pi - "the thing" that announces your Pi on the network (goes by name of "avahi") - has a hiccup and assigns itself a new name.   
 Therefore, it is a good idea to take note of the IP it has been assigned and configure your router to always give it the same IP ([Example](fritz.md))  
 > If that is a problem - if you lose connectivity (it used to work for a while with e.g. "rpizero.local" but then it doesn't): Try "rpizero-1.local",  "rpizero-2.local", etc. 
-> Or, simply restart your Pi and wait a few minutes until it has announced its new (old) name.
+> Or, simply restart your Pi and wait a few minutes until it has announced its new (old) name.  
+> **Update** To automate this, I have created a flow that you can run. See [Raspberry Pi OS and mDNS](../../rpihelper.md)
+
 
 ```
 ssh <yourusername>@<yourpi>.local

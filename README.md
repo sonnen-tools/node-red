@@ -13,6 +13,8 @@ Step 3) [Install the Flow](./docs/setup/flow/import-flow.md)
 
 It's really quite straightforward and easy to do. 
 
+#### Update
+If you have issues, because your Raspberry keeps disappearing from your network - [check this out](./docs/rpihelper.md).
 
 ## The Node-RED Flow
 
